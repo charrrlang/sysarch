@@ -126,6 +126,7 @@ while($row = $chart_sql->fetch_assoc()) {
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
+        <a href="feedback_reports.php">Feedback Repoerts</a>
         <a href="welcomepage.php" class="btn-logout">Logout</a>
     </nav>
 </header>
@@ -143,6 +144,7 @@ while($row = $chart_sql->fetch_assoc()) {
                     <span class="stat-label">Current Active Sit-ins</span>
                     <span class="stat-value"><?php echo $active_sitin; ?></span>
                 </div>
+                
                 <div class="stat-item" style="border-bottom: none; margin-bottom: 20px;">
                     <span class="stat-label">Total Historical Records</span>
                     <span class="stat-value"><?php echo $total_sitin_records; ?></span>

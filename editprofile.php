@@ -88,9 +88,12 @@ $user = $user_query->fetch_assoc();
     <title>Edit Profile - CCS Sit-in Monitoring</title>
     <style>
         html, body { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; }
-        header { background-color: #b0b1a8; padding: 10px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #999; }
-        .system-title { color: #1a2fa3; font-weight: bold; font-size: 20px; }
-        .nav-links a { color: #1a2fa3; text-decoration: none; font-weight: bold; margin-left: 20px; font-size: 14px; }
+        header { background-color: #b0b1a8; display: flex; padding: 15px 60px; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; border-bottom: 1px solid #999; z-index: 1000; }
+        .logo-group { display: flex; align-items: center; gap: 20px; }
+        .UC-logo { width: 50px; height: auto; }
+        .system-title { font-size: 22px; font-weight: bold; color: #1a2fa3; margin: 0; }
+        .auth-group { display: flex; gap: 25px; align-items: center; }
+        .nav-link { color: #1a2fa3; text-decoration: none; font-weight: bold; font-size: 15px; }
         
         .wrapper { display: flex; min-height: calc(100vh - 65px); }
         .sidebar { width: 250px; background: white; border-right: 2px solid #1a2fa3; padding: 40px 30px; text-align: center; }
@@ -110,23 +113,24 @@ $user = $user_query->fetch_assoc();
         .btn-update { background-color: #1a2fa3; color: white; border: none; padding: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; }
         .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
         .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        
         .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:10px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" width="40">
-        <span class="system-title">CCS Sit-in Monitoring</span>
-    </div>
-    <div class="nav-links">
-        <a href="homepage.php">Home</a>
-        <a href="editprofile.php" style="text-decoration: underline;">Edit Profile</a>
-        <a href="history.php">History</a>
-        <a href="reservation.php">Reservation</a>
-        <a href="welcomepage.php" style="color: #d9534f;">Logout</a>
-    </div>
+    <div class="logo-group">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" alt="UC logo" class="UC-logo">
+            <h1 class="system-title">College of Computer Studies Sit-in Monitoring</h1>
+        </div>
+        <div class="auth-group">
+            <a href="homepage.php" class="nav-link" style="text-decoration: underline;">Home</a>
+            <a href="editprofile.php" class="nav-link">Edit Profile</a>
+            <a href="history.php" class="nav-link">History</a>
+            <a href="reservation.php" class="nav-link">Reservation</a>
+            <a href="welcomepage.php" class="nav-link" style="color: #d9534f;">Logout</a>
+        </div>
 </header>
 
 <div class="wrapper">

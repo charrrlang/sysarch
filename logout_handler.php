@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'db_connect.php';
+date_default_timezone_set('Asia/Manila');
 
 // Security: Only allow Admin to perform this action
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {

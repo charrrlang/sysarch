@@ -43,25 +43,21 @@ $result = $conn->query($sql);
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 1px solid #999; 
-            height: 70px;
-            box-sizing: border-box;
         }
-
         .logo-group { display: flex; align-items: center; gap: 10px; }
         .logo-group img { width: 40px; }
-        .system-title { color: var(--primary-blue); font-weight: bold; font-size: 20px; margin: 0; }
+        .system-title { color: #1a2fa3; font-weight: bold; font-size: 20px; margin: 0; }
 
+        /* Navigation */
         .nav-links { display: flex; align-items: center; }
         .nav-links a { 
-            color: var(--primary-blue); 
+            color: #1a2fa3; 
             text-decoration: none; 
             font-size: 13px; 
             margin-left: 20px; 
             font-weight: bold; 
-            transition: 0.3s;
         }
         .nav-links a:hover { text-decoration: underline; }
-        .nav-links a.active { text-decoration: underline; }
         .btn-logout { color: #d9534f !important; }
 
         /* --- MAIN CONTENT --- */
@@ -141,6 +137,7 @@ $result = $conn->query($sql);
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
+        <a href="feedback_reports.php">Feedback Repoerts</a>
         <a href="welcomepage.php" class="btn-logout">Log out</a>
     </nav>
 </header>

@@ -25,28 +25,26 @@ $result = $conn->query($sql);
         /* --- ADMIN DASHBOARD HEADER STYLE --- */
         header { 
             background-color: #b0b1a8; 
-            padding: 0 50px; 
+            padding: 10px 50px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            height: 70px;
             border-bottom: 1px solid #999; 
-            box-sizing: border-box;
         }
-        .logo-group { display: flex; align-items: center; gap: 15px; }
+        .logo-group { display: flex; align-items: center; gap: 10px; }
         .logo-group img { width: 40px; }
         .system-title { color: #1a2fa3; font-weight: bold; font-size: 20px; margin: 0; }
 
+        /* Navigation */
         .nav-links { display: flex; align-items: center; }
         .nav-links a { 
             color: #1a2fa3; 
             text-decoration: none; 
-            font-weight: bold; 
-            margin-left: 25px; 
             font-size: 13px; 
+            margin-left: 20px; 
+            font-weight: bold; 
         }
         .nav-links a:hover { text-decoration: underline; }
-        .nav-links a.active { text-decoration: underline; }
         .btn-logout { color: #d9534f !important; }
 
         /* --- CONTENT --- */
@@ -140,6 +138,7 @@ $result = $conn->query($sql);
         <a href="sit_in.php" class="active">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
+        <a href="feedback_reports.php">Feedback Repoerts</a>
         <a href="welcomepage.php" class="btn-logout">Logout</a>
     </nav>
 </header>

@@ -31,13 +31,12 @@ $result = $stmt->get_result();
             display: flex; flex-direction: column;
         }
 
-        header {
-            background-color: #b0b1a8; display: flex;
-            padding: 10px 60px; align-items: center;
-            justify-content: space-between; border-bottom: 1px solid #999;
-        }
-        .system-title { font-size: 20px; font-weight: bold; color: #1a2fa3; margin: 0; }
-        .nav-link { color: #1a2fa3; text-decoration: none; font-weight: bold; font-size: 14px; margin-left: 20px; }
+        header { background-color: #b0b1a8; display: flex; padding: 15px 60px; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; border-bottom: 1px solid #999; z-index: 1000; }
+        .logo-group { display: flex; align-items: center; gap: 20px; }
+        .UC-logo { width: 50px; height: auto; }
+        .system-title { font-size: 22px; font-weight: bold; color: #1a2fa3; margin: 0; }
+        .auth-group { display: flex; gap: 25px; align-items: center; }
+        .nav-link { color: #1a2fa3; text-decoration: none; font-weight: bold; font-size: 15px; }
 
         .app-body { display: flex; flex: 1; overflow: hidden; }
 
