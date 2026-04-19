@@ -58,6 +58,32 @@ $profile_pic = !empty($user['profile_picture']) ? $user['profile_picture'] : 'de
         .btn-submit:hover { background-color: #0d1a6d; }
         
         footer { background-color: #2c3e50; color: white; text-align: center; padding: 10px 0; font-size: 14px; }
+
+        #notif-toast {
+    visibility: hidden;
+    min-width: 300px;
+    background-color: #1a2fa3; /* Matches your UI */
+    color: white;
+    padding: 16px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999;
+    border-radius: 8px;
+    border-left: 5px solid #f1c40f;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* This is the class the JavaScript adds */
+#notif-toast.show {
+    visibility: visible;
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
     </style>
 </head>
 <body>
@@ -107,19 +133,14 @@ $profile_pic = !empty($user['profile_picture']) ? $user['profile_picture'] : 'de
                 </div>
             <?php endif; ?>
 
-            <div class="feedback-section">
-                <h3>💬 Submit Feedback</h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Have a suggestion or an issue with the laboratory? Let us know below.</p>
-                
-                <form action="submit_feedback.php" method="POST" class="feedback-form">
-                    <textarea name="feedback_message" placeholder="Type your feedback or report technical issues here..." required></textarea>
-                    <button type="submit" name="send_feedback" class="btn-submit">Send Feedback</button>
-                </form>
-            </div>
+            
         </div>
     </div>
 
-    <footer>&copy; 2024 College of Computer Studies</footer>
+    <footer>&copy; 2026 College of Computer Studies</footer>
+
+   
+<?php include 'footer.php'; ?>
 
 </body>
 </html>

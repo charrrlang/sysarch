@@ -1,20 +1,18 @@
 <?php
 session_start();
 include 'db_connect.php';
-date_default_timezone_set('Asia/Manila');
 
-if (isset($_POST['send_feedback'])) {
-    $id_number = $_SESSION['id_number'];
-    $message = $_POST['feedback_message'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $record_id = $_POST['record_id'];
+    $student_id = $_SESSION['id_number'];
+    $rating = $_POST['rating'];
+    $comment = $conn->real_escape_string($_POST['comment']);
 
-    // Insert feedback into database
-    $sql = "INSERT INTO feedbacks (id_number, message, date_submitted) VALUES (?, ?, NOW())";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $id_number, $message);
-    
-    if ($stmt->execute()) {
-        // Redirect back to homepage with a success alert
-        echo "<script>alert('Feedback submitted successfully!'); window.location.href='homepage.php';</script>";
+    $sql = "INSERT INTO feedback (record_id, student_id, rating, comment) 
+            VALUES ('$record_id', '$student_id', '$rating', '$comment')";
+
+    if ($conn->query($sql)) {
+        header("Location: history.php?msg=FeedbackSubmitted");
     } else {
         echo "Error: " . $conn->error;
     }

@@ -123,6 +123,32 @@ $res_result = $conn->query($res_query);
             font-weight: bold; 
             font-size: 15px;
         }
+
+        /* Critical for the pop-up to appear */
+#notif-toast {
+    visibility: hidden;
+    min-width: 300px;
+    background-color: #1a2fa3;
+    color: white;
+    padding: 16px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999;
+    border-radius: 8px;
+    border-left: 5px solid #f1c40f;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#notif-toast.show {
+    visibility: visible;
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
         
     </style>
 </head>
@@ -205,6 +231,9 @@ $res_result = $conn->query($res_query);
         </div>
     </div>
 </div>
+
+footer>&copy; 2026 College of Computer Studies</footer>
+    <?php include 'footer.php'; ?>
 
 </body>
 </html>

@@ -115,6 +115,32 @@ $user = $user_query->fetch_assoc();
         .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         
         .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Critical for the pop-up to appear */
+#notif-toast {
+    visibility: hidden;
+    min-width: 300px;
+    background-color: #1a2fa3;
+    color: white;
+    padding: 16px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999;
+    border-radius: 8px;
+    border-left: 5px solid #f1c40f;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#notif-toast.show {
+    visibility: visible;
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
     </style>
 </head>
 <body>
@@ -193,6 +219,10 @@ $user = $user_query->fetch_assoc();
         </div>
     </div>
 </div>
+
+    <footer>&copy; 2026 College of Computer Studies</footer>
+
+<?php include 'footer.php'; ?>
 
 </body>
 </html>

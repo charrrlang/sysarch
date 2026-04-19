@@ -2,29 +2,29 @@
 session_start();
 include 'db_connect.php';
 
-// Security: Only allow Admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
-    header("Location: login.php");
-    exit();
-}
-
-// Fetch feedback joined with user details to see WHO sent the message
-$sql = "SELECT f.*, u.FullName, u.Course, u.CourseLevel 
-        FROM feedbacks f 
-        JOIN users u ON f.id_number = u.Id 
+// Fetch all feedback with student names and session details
+$sql = "SELECT f.*, u.FullName, s.lab_room, s.purpose 
+        FROM feedback f 
+        JOIN users u ON f.student_id = u.Id 
+        JOIN sitin_records s ON f.record_id = s.id 
         ORDER BY f.date_submitted DESC";
-$result = $conn->query($sql);
+
+$report_query = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback Reports | Admin</title>
+    <title>Feedback Reports - Admin Panel</title>
     <style>
+        /* Reusing your clean, professional UI aesthetics */
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; color: #333; }
-        header { 
+                .report-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #1a2fa3; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .rating-star { color: #f1c40f; font-weight: bold; }
+         header { 
             background-color: #b0b1a8; 
             padding: 10px 50px; 
             display: flex; 
@@ -47,21 +47,12 @@ $result = $conn->query($sql);
         }
         .nav-links a:hover { text-decoration: underline; }
         .btn-logout { color: #d9534f !important; }
-        
-        .container { padding: 40px; max-width: 1100px; margin: 0 auto; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #dee2e6; }
-        .card-header { padding: 25px; border-bottom: 1px solid #dee2e6; background: #fafafa; }
-        .card-title { font-size: 20px; font-weight: 700; color: #1a2fa3; margin: 0; }
 
-        table { width: 100%; border-collapse: collapse; }
-        thead th { background-color: #1a2fa3; color: white; padding: 15px 20px; text-align: left; font-size: 11px; text-transform: uppercase; }
-        tbody td { padding: 16px 20px; border-bottom: 1px solid #f1f1f1; font-size: 14px; vertical-align: top; }
+        /* Dashboard Layout */
+        .container { padding: 40px; max-width: 1200px; margin: 0 auto; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         
-        .student-info { font-weight: bold; color: #333; display: block; }
-        .student-sub { font-size: 11px; color: #888; }
-        .message-text { line-height: 1.5; color: #444; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 3px solid #1a2fa3; }
-        .btn-logout { color: #d9534f !important; }
-        .date-text { font-size: 12px; color: #666; font-style: italic; }
+        
     </style>
 </head>
 <body>
@@ -69,67 +60,45 @@ $result = $conn->query($sql);
 <header>
     <div class="logo-group">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" alt="UC Logo">
-        <h1 class="system-title">CCS Sit-in Monitoring | Admin</h1>
+        <h1 class="system-title">College of Computer Studies Sit-in Monitoring</h1>
     </div>
-    <nav class="admin-navbar">
-        <div class="nav-links">
-        <a href="admin_dashboard.php">Home</a>
+
+    <nav class="nav-links">
+        <a href="admin_dashboard.php" style="text-decoration: underline;">Home</a>
         <a href="search_student.php">Search</a>
         <a href="view_students.php">Students</a>
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
-        <a href="feedback_reports.php">Feedback Repoerts</a>
-        <a href="welcomepage.php" class="btn-logout">Log out</a>
-        </div>
+        <a href="feedback_reports.php">Feedback Reports</a>
+        <a href="welcomepage.php" class="btn-logout">Logout</a>
     </nav>
 </header>
-
-<div class="container">
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Student Feedback Reports</h2>
-        </div>
-        
+    <div class="report-container">
+        <h2>Student Feedback Reports</h2>
         <table>
             <thead>
                 <tr>
-                    <th width="25%">Student Details</th>
-                    <th width="55%">Feedback Message</th>
-                    <th width="20%">Date Submitted</th>
+                    <th>Student Name</th>
+                    <th>Lab & Purpose</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Date</th>
                 </tr>
             </thead>
             <tbody>
-                <?php if ($result && $result->num_rows > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td>
-                            <span class="student-info"><?php echo htmlspecialchars($row['FullName']); ?></span>
-                            <span class="student-sub"><?php echo htmlspecialchars($row['id_number']); ?></span><br>
-                            <span class="student-sub"><?php echo htmlspecialchars($row['Course']); ?> - <?php echo $row['CourseLevel']; ?></span>
-                        </td>
-                        <td>
-                            <div class="message-text">
-                                <?php echo nl2br(htmlspecialchars($row['message'])); ?>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="date-text">
-                                <?php echo date('M d, Y', strtotime($row['date_submitted'])); ?><br>
-                                <?php echo date('h:i A', strtotime($row['date_submitted'])); ?>
-                            </span>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" style="text-align: center; padding: 50px; color: #999;">No feedback messages received yet.</td>
-                    </tr>
-                <?php endif; ?>
+                <?php while($row = $report_query->fetch_assoc()): ?>
+                <tr>
+                    <td><strong><?php echo htmlspecialchars($row['FullName']); ?></strong></td>
+                    <td><?php echo htmlspecialchars($row['lab_room'] . " (" . $row['purpose'] . ")"); ?></td>
+                    <td class="rating-star"><?php echo str_repeat('★', $row['rating']); ?></td>
+                    <td><?php echo nl2br(htmlspecialchars($row['comment'])); ?></td>
+                    <td><?php echo date('M d, Y', strtotime($row['date_submitted'])); ?></td>
+                </tr>
+                <?php endwhile; ?>
             </tbody>
         </table>
     </div>
-</div>
-
 </body>
-</html>
+</html><?php
+

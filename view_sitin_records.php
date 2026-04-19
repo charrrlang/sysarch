@@ -74,7 +74,7 @@ $result = $conn->query($sql);
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php" class="active">Records</a>
         <a href="reservation_admin.php">Reservation</a>
-        <a href="feedback_reports.php">Feedback Repoerts</a>
+        <a href="feedback_reports.php">Feedback Reports</a>
         <a href="welcomepage.php" style="color:#d9534f;">Logout</a>
     </nav>
 </header>

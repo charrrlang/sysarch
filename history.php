@@ -61,9 +61,60 @@ $result = $stmt->get_result();
         .status-badge { padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
         .status-completed { background-color: #d4edda; color: #155724; }
         .status-ongoing { background-color: #fff3cd; color: #856404; }
-.logo-group { display: flex; align-items: center; gap: 20px; }
+        .logo-group { display: flex; align-items: center; gap: 20px; }
         .UC-logo { width: 50px; height: auto; }
         footer { background-color: #2c3e50; color: white; text-align: center; padding: 12px 0; font-size: 13px; }
+
+        .btn-feedback {
+    background-color: #1a2fa3; /* Matches your UC system theme */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 10px;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-feedback:hover {
+    background-color: #0d1a70;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Ensure the status cell content stays centered and aligned */
+td:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Critical for the pop-up to appear */
+#notif-toast {
+    visibility: hidden;
+    min-width: 300px;
+    background-color: #1a2fa3;
+    color: white;
+    padding: 16px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999;
+    border-radius: 8px;
+    border-left: 5px solid #f1c40f;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#notif-toast.show {
+    visibility: visible;
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
     </style>
 </head>
 <body>
@@ -106,37 +157,50 @@ $result = $stmt->get_result();
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                        if ($result && $result->num_rows > 0) {
-                            while($row = $result->fetch_assoc()) {
-                                // Formatting the dates
-                                $login_fmt = date('M d, Y - h:i A', strtotime($row['login_time']));
-                                $logout_fmt = $row['logout_time'] ? date('M d, Y - h:i A', strtotime($row['logout_time'])) : "---";
-                                
-                                // Logic for Status badge
-                                $is_done = ($row['status'] === 'Completed' || !empty($row['logout_time']));
-                                $status_class = $is_done ? "status-completed" : "status-ongoing";
-                                $status_text = $is_done ? "Completed" : "Ongoing";
+    <?php 
+    if ($result && $result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $login_fmt = date('M d, Y - h:i A', strtotime($row['login_time']));
+            $logout_fmt = $row['logout_time'] ? date('M d, Y - h:i A', strtotime($row['logout_time'])) : "---";
+            
+            // Logic to determine if session is finished
+            $is_done = ($row['status'] === 'Completed' || !empty($row['logout_time']));
+            $status_class = $is_done ? "status-completed" : "status-ongoing";
+            $status_text = $is_done ? "Completed" : "Ongoing";
+            ?>
+            
+            <tr>
+                <td><?php echo htmlspecialchars($row['purpose'] ?? 'N/A'); ?></td>
+                <td><?php echo htmlspecialchars($row['lab_room'] ?? 'N/A'); ?></td>
+                <td><?php echo $login_fmt; ?></td>
+                <td><?php echo $logout_fmt; ?></td>
+                <td>
+                    <span class="status-badge <?php echo $status_class; ?>">
+                        <?php echo $status_text; ?>
+                    </span>
 
-                                echo "<tr>
-                                        <td>" . htmlspecialchars($row['purpose'] ?? 'N/A') . "</td>
-                                        <td>" . htmlspecialchars($row['lab_room'] ?? 'N/A') . "</td>
-                                        <td>" . $login_fmt . "</td>
-                                        <td>" . $logout_fmt . "</td>
-                                        <td><span class='status-badge $status_class'>$status_text</span></td>
-                                      </tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='5' style='text-align:center;'>No records found for ID: " . htmlspecialchars($id_number) . "</td></tr>";
-                        }
-                        ?>
-                    </tbody>
+                    <?php if ($is_done): ?>
+                        <a href="feedback.php?id=<?php echo $row['id']; ?>" class="btn-feedback">
+                            Feedback
+                        </a>
+                    <?php endif; ?>
+                </td>
+            </tr>
+
+            <?php 
+        }
+    } else {
+        echo "<tr><td colspan='5' style='text-align:center;'>No records found for ID: " . htmlspecialchars($id_number) . "</td></tr>";
+    }
+    ?>
+</tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <footer>&copy; 2026 College of Computer Studies</footer>
+<?php include 'footer.php'; ?>
 
 </body>
 </html>

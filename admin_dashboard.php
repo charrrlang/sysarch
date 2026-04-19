@@ -126,7 +126,7 @@ while($row = $chart_sql->fetch_assoc()) {
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
-        <a href="feedback_reports.php">Feedback Repoerts</a>
+        <a href="feedback_reports.php">Feedback Reports</a>
         <a href="welcomepage.php" class="btn-logout">Logout</a>
     </nav>
 </header>
