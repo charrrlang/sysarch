@@ -17,73 +17,76 @@ $user = $query->fetch_assoc();
 $announcement_query = $conn->query("SELECT * FROM announcements ORDER BY date_posted DESC");
 
 $profile_pic = !empty($user['profile_picture']) ? $user['profile_picture'] : 'default.png';
+
+/** 
+ * REWARD POINTS LOGIC 
+ */
+$points_goal = 100;
+$current_points = isset($user['points']) ? $user['points'] : 0;
+$progress_percent = ($current_points / $points_goal) * 100;
+if ($progress_percent > 100) $progress_percent = 100;
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dashboard - Sit-in Monitoring</title>
+    <meta charset="UTF-8">
+    <title>Student Dashboard - Sit-in Monitoring</title>
     <style>
-        /* ... Keep all your existing CSS ... */
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f4f7f6; height: 100vh; display: flex; flex-direction: column; }
-        header { background-color: #b0b1a8; display: flex; padding: 15px 60px; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; border-bottom: 1px solid #999; z-index: 1000; }
-        .logo-group { display: flex; align-items: center; gap: 20px; }
-        .UC-logo { width: 50px; height: auto; }
-        .system-title { font-size: 22px; font-weight: bold; color: #1a2fa3; margin: 0; }
-        .auth-group { display: flex; gap: 25px; align-items: center; }
-        .nav-link { color: #1a2fa3; text-decoration: none; font-weight: bold; font-size: 15px; }
-        .app-body { display: flex; flex-grow: 1; overflow: hidden; }
-        .sidebar { width: 280px; background-color: #ffffff; border-right: 2px solid #1a2fa3; padding: 30px 20px; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.05); align-items: center; }
-        .profile-pic-container { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #1a2fa3; overflow: hidden; margin-bottom: 20px; background-color: #eee; }
-        .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
-        .sidebar h3 { color: #1a2fa3; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; width: 100%; text-align: left; }
-        .detail-box { margin-bottom: 20px; width: 100%; text-align: left; }
-        .label { font-size: 11px; color: #888; text-transform: uppercase; font-weight: bold; display: block; }
-        .value { font-size: 16px; color: #333; font-weight: 600; }
-
-        .main-content { flex-grow: 1; padding: 50px; overflow-y: auto; }
-
-        .announcement-card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; border-left: 6px solid #f1c40f; margin-bottom: 25px; }
-        .announcement-card:first-of-type { border-left-color: #28a745; }
-        .announcement-header { background-color: #fdfdfd; padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .announcement-title { font-weight: bold; color: #1a2fa3; font-size: 18px; }
-        .announcement-date { font-size: 12px; color: #888; }
-        .announcement-body { padding: 25px; color: #444; line-height: 1.6; }
-
-        /* FEEDBACK STYLES */
-        .feedback-section { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 30px; border-top: 5px solid #1a2fa3; margin-top: 40px; }
-        .feedback-section h3 { color: #1a2fa3; margin-top: 0; }
-        .feedback-form textarea { width: 100%; height: 120px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: none; margin-bottom: 15px; box-sizing: border-box; }
-        .btn-submit { background-color: #1a2fa3; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-submit:hover { background-color: #0d1a6d; }
         
-        footer { background-color: #2c3e50; color: white; text-align: center; padding: 10px 0; font-size: 14px; }
+        header { background-color: #b0b1a8; display: flex; padding: 15px 60px; align-items: center; justify-content: space-between; border-bottom: 1px solid #999; }
+        .logo-group { display: flex; align-items: center; gap: 20px; }
+        .UC-logo { width: 50px; }
+        .system-title { font-size: 22px; font-weight: bold; color: #1a2fa3; margin: 0; }
+        .nav-link { color: #1a2fa3; text-decoration: none; font-weight: bold; cursor: pointer; margin-left: 20px; }
 
-        #notif-toast {
-    visibility: hidden;
-    min-width: 300px;
-    background-color: #1a2fa3; /* Matches your UI */
-    color: white;
-    padding: 16px;
-    position: fixed;
-    right: 30px;
-    bottom: 30px;
-    z-index: 9999;
-    border-radius: 8px;
-    border-left: 5px solid #f1c40f;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
+        .app-body { display: flex; flex-grow: 1; overflow: hidden; }
 
-/* This is the class the JavaScript adds */
-#notif-toast.show {
-    visibility: visible;
-    animation: fadein 0.5s;
-}
+        /* Sidebar */
+        .sidebar { width: 280px; background: white; border-right: 2px solid #1a2fa3; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; }
+        .profile-pic-container { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #1a2fa3; overflow: hidden; margin-bottom: 20px; }
+        .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
+        .detail-box { margin-bottom: 15px; width: 100%; }
+        .label { font-size: 11px; color: #888; text-transform: uppercase; font-weight: bold; }
+        .value { font-size: 15px; color: #333; font-weight: 600; display: block; }
 
-@keyframes fadein {
-    from { bottom: 0; opacity: 0; }
-    to { bottom: 30px; opacity: 1; }
-}
+        /* Main Content */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .stat-card { background: white; padding: 25px; border-radius: 10px; border-top: 5px solid #1a2fa3; max-width: 400px; margin-bottom: 30px; }
+        .progress-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: #1a2fa3; transition: width 0.5s; }
+
+        /* --- CUSTOM MULTI-STEP MODAL --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .modal-step { display: none; flex-direction: column; gap: 12px; }
+        .modal-step.active { display: flex; }
+
+        .modal-btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-option { background: #f8f9fa; border: 1px solid #ddd; color: #333; }
+        .btn-option.selected { background: #1a2fa3; color: white; border-color: #1a2fa3; }
+        .btn-final-logout { background: #d9534f; color: white; margin-top: 10px; font-size: 16px; }
+        .btn-cancel { background: transparent; color: #888; font-size: 13px; margin-top: 5px; }
+
+        /* Announcements */
+        .announcement-card { background: white; padding: 20px; border-radius: 10px; border-left: 5px solid #28a745; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        footer { background: #2c3e50; color: white; text-align: center; padding: 10px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -93,6 +96,7 @@ $profile_pic = !empty($user['profile_picture']) ? $user['profile_picture'] : 'de
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" alt="UC logo" class="UC-logo">
             <h1 class="system-title">College of Computer Studies Sit-in Monitoring</h1>
         </div>
+
         <div class="auth-group">
             <a href="homepage.php" class="nav-link" style="text-decoration: underline;">Home</a>
             <a href="editprofile.php" class="nav-link">Edit Profile</a>
@@ -105,42 +109,96 @@ $profile_pic = !empty($user['profile_picture']) ? $user['profile_picture'] : 'de
     <div class="app-body">
         <div class="sidebar">
             <div class="profile-pic-container">
-                <img src="uploads/<?php echo $profile_pic; ?>" alt="Profile Picture">
+                <img src="uploads/<?php echo $profile_pic; ?>" alt="Profile">
             </div>
             <h3>Student Profile</h3>
             <div class="detail-box"><span class="label">ID Number</span><span class="value"><?php echo htmlspecialchars($user['Id']); ?></span></div>
-            <div class="detail-box"><span class="label">Student Name</span><span class="value"><?php echo htmlspecialchars($user['FullName']); ?></span></div>
-            <div class="detail-box"><span class="label">Course & Year</span><span class="value"><?php echo htmlspecialchars($user['Course'] . " - " . $user['CourseLevel']); ?></span></div>
-            <div class="detail-box"><span class="label">Email Address</span><span class="value"><?php echo htmlspecialchars($user['EmailAddress']); ?></span></div>
-            <div class="detail-box"><span class="label">Remaining Sessions</span><span class="value" style="color: #1a2fa3; font-size: 20px;"><?php echo htmlspecialchars($user['sessions_remaining']); ?></span></div>
-        </div> 
+            <div class="detail-box"><span class="label">Name</span><span class="value"><?php echo htmlspecialchars($user['FullName']); ?></span></div>
+            <div class="detail-box"><span class="label">Course</span><span class="value"><?php echo htmlspecialchars($user['Course']); ?></span></div>
+            <div class="detail-box"><span class="label">Sessions</span><span class="value"><?php echo htmlspecialchars($user['sessions_remaining']); ?> left</span></div>
+        </div>
 
         <div class="main-content">
-            <h2 style="color: #1a2fa3; margin-top: 0;">📢 Announcements</h2>
-            <?php if ($announcement_query->num_rows > 0): ?>
-                <?php while($row = $announcement_query->fetch_assoc()): ?>
-                    <div class="announcement-card">
-                        <div class="announcement-header">
-                            <span class="announcement-title">Notice</span>
-                            <span class="announcement-date">Posted on: <?php echo date('M d, Y | h:i A', strtotime($row['date_posted'])); ?></span>
-                        </div>
-                        <div class="announcement-body"><?php echo nl2br(htmlspecialchars($row['content'])); ?></div>
-                    </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="announcement-card" style="border-left: 6px solid #ccc;">
-                    <div class="announcement-body"><p style="color: #888; font-style: italic; text-align: center;">No current announcements.</p></div>
+            <div class="stat-card">
+                <span class="label">Reward Progress</span>
+                <div style="font-size: 24px; font-weight: bold; color: #1a2fa3;"><?php echo $current_points; ?> pts</div>
+                <div class="progress-container">
+                    <div class="progress-fill" style="width: <?php echo $progress_percent; ?>%;"></div>
                 </div>
-            <?php endif; ?>
+            </div>
 
-            
+            <h2 style="color: #1a2fa3;">📢 Announcements</h2>
+            <?php while($row = $announcement_query->fetch_assoc()): ?>
+                <div class="announcement-card">
+                    <strong>Notice:</strong> <?php echo nl2br(htmlspecialchars($row['content'])); ?>
+                    <div style="font-size: 11px; color: #aaa; margin-top: 10px;"><?php echo $row['date_posted']; ?></div>
+                </div>
+            <?php endwhile; ?>
+        </div>
+    </div>
+
+    <!-- MULTI-STEP LOGOUT MODAL -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-box">
+            <!-- STEP 1: SELECT STATUS -->
+            <div id="step1" class="modal-step active">
+                <h3>Step 1: Task Status</h3>
+                <p>Did you complete your tasks for today?</p>
+                <button type="button" class="modal-btn btn-option" onclick="selectStatus('Completed', this)">Yes, Task Completed</button>
+                <button type="button" class="modal-btn btn-option" onclick="selectStatus('Not Completed', this)">No, Incomplete</button>
+                <button type="button" class="modal-btn btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+            </div>
+
+            <!-- STEP 2: ACTUAL LOGOUT BUTTON -->
+            <div id="step2" class="modal-step">
+                <h3>Step 2: Finalize</h3>
+                <p id="status-preview" style="font-weight: bold; color: #28a745;"></p>
+                <button type="button" class="modal-btn btn-final-logout" onclick="finalizeLogout()">Click here to Actual Logout</button>
+                <button type="button" class="modal-btn btn-cancel" onclick="resetSteps()">Change Status</button>
+            </div>
         </div>
     </div>
 
     <footer>&copy; 2026 College of Computer Studies</footer>
 
-   
-<?php include 'footer.php'; ?>
+    <script>
+        let selectedStatus = "";
 
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
+            resetSteps();
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        function selectStatus(status, btnElement) {
+            selectedStatus = status;
+            
+            // Visual feedback: Highlight selection
+            document.querySelectorAll('.btn-option').forEach(btn => btn.classList.remove('selected'));
+            btnElement.classList.add('selected');
+
+            // Move to Step 2
+            setTimeout(() => {
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('status-preview').innerText = "Status: " + status;
+            }, 400); // Slight delay for smooth transition
+        }
+
+        function resetSteps() {
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step2').classList.remove('active');
+            selectedStatus = "";
+        }
+
+        function finalizeLogout() {
+            if (selectedStatus !== "") {
+                window.location.href = "logout_handler.php?status=" + selectedStatus;
+            }
+        }
+    </script>
 </body>
 </html>

@@ -77,7 +77,7 @@ $res_result = $conn->query($res_query);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reservation | UC Sit-in</title>
+    <title>Reservation</title>
     <style>
         html, body { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; }
         header { background-color: #b0b1a8; padding: 10px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #999; }

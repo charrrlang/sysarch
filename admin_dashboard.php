@@ -1,166 +1,220 @@
 <?php
+// 1. START OUTPUT BUFFERING (Fixes the "Header already sent" error)
+ob_start(); 
 session_start();
 include 'db_connect.php';
 
-// Check if admin is logged in (using role for security)
+// 2. SECURITY CHECK
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
     header("Location: login.php");
     exit();
 }
 
-// Dynamic Stats
+// 3. --- HANDLE REWARD SUBMISSION (PRG PATTERN) ---
+if (isset($_POST['grant_reward'])) {
+    // Sanitize inputs for security (Important for CCS projects!)
+    $student_id = $conn->real_escape_string($_POST['student_id']);
+    $points_to_add = intval($_POST['amount']);
+    
+    // Update query
+    $update = $conn->query("UPDATE users SET points = points + $points_to_add WHERE Id = '$student_id'");
+    
+    if ($update) { 
+        // Store message in session so it survives the redirect
+        $_SESSION['success_msg'] = "Successfully added $points_to_add points to $student_id!";
+        
+        // REDIRECT back to self to clear POST data
+        header("Location: admin_dashboard.php");
+        exit(); 
+    }
+}
+
+// Check for session message and then clear it
+$msg = "";
+if (isset($_SESSION['success_msg'])) {
+    $msg = $_SESSION['success_msg'];
+    unset($_SESSION['success_msg']);
+}
+
+// 4. --- ANALYTICS DATA FETCHING ---
+
+// Reward Points (60%)
+$points_stats = $conn->query("SELECT SUM(points) as total, AVG(points) as avg FROM users")->fetch_assoc();
+$total_points_issued = $points_stats['total'] ?? 0;
+
+// Sit-in Hours (20%)
+$hours_data = $conn->query("SELECT SUM(TIMESTAMPDIFF(MINUTE, login_time, logout_time) / 60) as total_hrs 
+                            FROM sitin_records 
+                            WHERE status = 'Completed'")->fetch_assoc();
+$total_hours = $hours_data['total_hrs'] ?? 0;
+
+// Task Completion (20%)
+$total_records = $conn->query("SELECT COUNT(*) as count FROM sitin_records")->fetch_assoc()['count'];
+$completed_records = $conn->query("SELECT COUNT(*) as count FROM sitin_records WHERE status = 'Completed'")->fetch_assoc()['count'];
+$task_percent = ($total_records > 0) ? round(($completed_records / $total_records) * 100) : 0;
+
+// General Stats
 $total_students = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
 $active_sitin = $conn->query("SELECT COUNT(*) as count FROM sitin_records WHERE status = 'Approved'")->fetch_assoc()['count'];
-$total_sitin_records = $conn->query("SELECT COUNT(*) as count FROM sitin_records")->fetch_assoc()['count'];
 
-// Pie Chart Data
+// Pie Chart Data (Purpose of Sit-in)
 $chart_sql = $conn->query("SELECT purpose, COUNT(*) as count FROM sitin_records GROUP BY purpose");
 $purposes = []; $counts = [];
 while($row = $chart_sql->fetch_assoc()) {
     $purposes[] = $row['purpose'];
     $counts[] = $row['count'];
 }
+
+// Leaderboard
+$leaderboard = $conn->query("SELECT FullName, points, Course FROM users ORDER BY points DESC LIMIT 5");
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard | UC Sit-in Monitoring</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; color: #333; }
-        
-        /* Consistent Header Style */
-        header { 
-            background-color: #b0b1a8; 
-            padding: 10px 50px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #999; 
-        }
+        header { background-color: #b0b1a8; padding: 10px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #999; }
         .logo-group { display: flex; align-items: center; gap: 10px; }
         .logo-group img { width: 40px; }
         .system-title { color: #1a2fa3; font-weight: bold; font-size: 20px; margin: 0; }
-
-        /* Navigation */
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a { 
-            color: #1a2fa3; 
-            text-decoration: none; 
-            font-size: 13px; 
-            margin-left: 20px; 
-            font-weight: bold; 
-        }
-        .nav-links a:hover { text-decoration: underline; }
+        .nav-links a { color: #1a2fa3; text-decoration: none; font-size: 13px; margin-left: 20px; font-weight: bold; }
         .btn-logout { color: #d9534f !important; }
 
-        /* Dashboard Layout */
-        .container { padding: 40px; max-width: 1200px; margin: 0 auto; }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        
-        .card { 
-            background: white; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
-            overflow: hidden; 
-            border: none;
-        }
-        .card-header { 
-            background: #1a2fa3; 
-            color: white; 
-            padding: 15px 20px; 
-            font-weight: bold; 
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .card-body { padding: 25px; }
+        .container { padding: 30px; max-width: 1400px; margin: 0 auto; }
 
-        /* Stats Styling */
-        .stat-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 10px 0; 
-            border-bottom: 1px solid #edf2f7; 
-        }
-        .stat-label { font-weight: 600; color: #4a5568; }
-        .stat-value { font-weight: bold; color: #1a2fa3; }
+        /* Analytics Cards */
+        .analytics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .analytics-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #1a2fa3; }
+        .ana-label { font-size: 12px; color: #888; font-weight: bold; text-transform: uppercase; }
+        .ana-value { font-size: 28px; font-weight: bold; color: #1a2fa3; margin: 5px 0; }
+        .ana-sub { font-size: 11px; color: #28a745; font-weight: bold; }
 
-        textarea { 
-            width: 100%; 
-            height: 100px; 
-            padding: 12px; 
-            border: 1px solid #cbd5e0; 
-            border-radius: 6px; 
-            resize: none; 
-            box-sizing: border-box; 
-            margin-bottom: 15px;
-        }
-        .btn-submit { 
-            background: #28a745; 
-            color: white; 
-            border: none; 
-            padding: 10px 25px; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.2s;
-        }
-        .btn-submit:hover { background: #218838; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 25px; align-items: start; }
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 25px; overflow: hidden; }
+        .card-header { background: #1a2fa3; color: white; padding: 15px; font-weight: bold; font-size: 15px; }
+        .card-body { padding: 20px; }
+
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; }
+        .btn-action { background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn-reward { background: #1a2fa3; }
+
+        .leader-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
+        .rank { font-weight: bold; color: #f1c40f; margin-right: 10px; }
+        .stat-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .alert-success { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo-group">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" alt="UC Logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/University_of_Cebu_Logo.png/960px-University_of_Cebu_Logo.png" alt="UC logo">
         <h1 class="system-title">College of Computer Studies Sit-in Monitoring</h1>
     </div>
 
-    <nav class="nav-links">
-        <a href="admin_dashboard.php" style="text-decoration: underline;">Home</a>
+    <nav class="admin-navbar">
+        <div class="nav-links">
+        <a href="admin_dashboard.php">Home</a>
         <a href="search_student.php">Search</a>
         <a href="view_students.php">Students</a>
         <a href="sit_in.php">Sit-in</a>
         <a href="view_sitin_records.php">Records</a>
         <a href="reservation_admin.php">Reservation</a>
         <a href="feedback_reports.php">Feedback Reports</a>
-        <a href="welcomepage.php" class="btn-logout">Logout</a>
+        <a href="welcomepage.php" class="btn-logout">Log out</a>
+        </div>
     </nav>
 </header>
 
 <div class="container">
+
+    <!-- Success Message (PRG Display) -->
+    <?php if($msg): ?>
+        <div class="alert-success"><?php echo $msg; ?></div>
+    <?php endif; ?>
+
+    <!-- TOP ANALYTICS (60/20/20) -->
+    <div class="analytics-row">
+        <div class="analytics-card" style="border-left-color: #1a2fa3;">
+            <div class="ana-label">Total Rewards Issued (60%)</div>
+            <div class="ana-value"><?php echo number_format($total_points_issued); ?> pts</div>
+            <div class="ana-sub">Avg per Student: <?php echo round($points_stats['avg'], 1); ?></div>
+        </div>
+        <div class="analytics-card" style="border-left-color: #f1c40f;">
+            <div class="ana-label">Total Sit-in Hours (20%)</div>
+            <div class="ana-value"><?php echo number_format($total_hours, 1); ?> hrs</div>
+            <div class="ana-sub">Lab Usage Duration</div>
+        </div>
+        <div class="analytics-card" style="border-left-color: #28a745;">
+            <div class="ana-label">Task Completion (20%)</div>
+            <div class="ana-value"><?php echo $task_percent; ?>%</div>
+            <div class="ana-sub"><?php echo $completed_records; ?> sessions finalized</div>
+        </div>
+    </div>
+
     <div class="dashboard-grid">
-        <div class="card">
-            <div class="card-header">📊 System Statistics</div>
-            <div class="card-body">
-                <div class="stat-item">
-                    <span class="stat-label">Students Registered</span>
-                    <span class="stat-value"><?php echo $total_students; ?></span>
+        <!-- Usage Overview -->
+        <div class="col">
+            <div class="card">
+                <div class="card-header">📊 Lab Usage</div>
+                <div class="card-body">
+                    <div class="stat-item"><span>Registered Users</span><span><?php echo $total_students; ?></span></div>
+                    <div class="stat-item"><span>Active Sessions</span><span><?php echo $active_sitin; ?></span></div>
+                    <canvas id="purposeChart" style="margin-top:20px;"></canvas>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Current Active Sit-ins</span>
-                    <span class="stat-value"><?php echo $active_sitin; ?></span>
-                </div>
-                
-                <div class="stat-item" style="border-bottom: none; margin-bottom: 20px;">
-                    <span class="stat-label">Total Historical Records</span>
-                    <span class="stat-value"><?php echo $total_sitin_records; ?></span>
-                </div>
-                <canvas id="purposeChart" style="max-height: 250px;"></canvas>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">📢 Post Announcement</div>
-            <div class="card-body">
-                <form action="post_announcement.php" method="POST">
-                    <label style="display:block; margin-bottom: 10px; font-weight:600; color:#4a5568;">What's the news today?</label>
-                    <textarea name="content" placeholder="Type your announcement here..." required></textarea>
-                    <button type="submit" class="btn-submit">Post Announcement</button>
-                </form>
+        <!-- Reward & Announcement Forms -->
+        <div class="col">
+            <div class="card">
+                <div class="card-header">🎁 Grant Reward Points</div>
+                <div class="card-body">
+                    <form method="POST">
+                        <select name="student_id" required>
+                            <option value="">-- Select Student --</option>
+                            <?php
+                            $students = $conn->query("SELECT Id, FullName FROM users");
+                            while($s = $students->fetch_assoc()) {
+                                echo "<option value='".$s['Id']."'>".$s['Id']." - ".$s['FullName']."</option>";
+                            }
+                            ?>
+                        </select>
+                        <input type="number" name="amount" placeholder="Points to add..." required>
+                        <button type="submit" name="grant_reward" class="btn-action btn-reward">Update Points</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📢 Lab Announcement</div>
+                <div class="card-body">
+                    <form action="post_announcement.php" method="POST">
+                        <textarea name="content" placeholder="Broadcast to all students..." required></textarea>
+                        <button type="submit" class="btn-action">Post Notice</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="col">
+            <div class="card">
+                <div class="card-header">🏆 Top Performers</div>
+                <div class="card-body">
+                    <?php 
+                    $rank = 1;
+                    while($row = $leaderboard->fetch_assoc()): ?>
+                        <div class="leader-row">
+                            <span><span class="rank">#<?php echo $rank++; ?></span> <?php echo $row['FullName']; ?></span>
+                            <span style="font-weight:bold; color:#1a2fa3;"><?php echo $row['points']; ?> pts</span>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -177,14 +231,13 @@ while($row = $chart_sql->fetch_assoc()) {
                 borderWidth: 1
             }]
         },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
+        options: { plugins: { legend: { position: 'bottom' } } }
     });
 </script>
 
 </body>
 </html>
+<?php 
+// 5. FLUSH THE BUFFER
+ob_end_flush(); 
+?>
