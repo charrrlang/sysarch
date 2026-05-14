@@ -96,7 +96,10 @@ $result = $conn->query($sql);
                         <th>Purpose</th>
                         <th>Login Time</th>
                         <th>Logout Time</th>
+                        <th>PC No.</th>
                         <th>Status</th>
+                        
+
                     </tr>
                 </thead>
                 <tbody>
@@ -111,6 +114,8 @@ $result = $conn->query($sql);
                             <td style="color: #d9534f; font-weight: bold;">
                             <?php echo date('M d, Y | h:i A', strtotime($row['logout_time'])); ?>
                             </td>
+                            <td><?php echo htmlspecialchars($row['pc_no']); ?></td>
+
                             <td><span class="status-done">Finished</span></td>
                         </tr>
                         <?php endwhile; ?>

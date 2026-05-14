@@ -79,6 +79,34 @@ if (isset($_POST['search'])) {
         }
         .btn-approve { background-color: #28a745; color: white; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
         .btn-approve:hover { background-color: #218838; }
+    
+        /* Styling for the PC Dropdown in the Table */
+.admin-pc-select {
+    width: 100%;
+    max-width: 70px; /* Keeps it compact */
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-pc-select:focus {
+    border-color: #1a2fa3; /* UC Blue */
+    box-shadow: 0 0 0 3px rgba(26, 47, 163, 0.1);
+    outline: none;
+}
+
+/* Adjusting the Table Header for the Icon */
+th i {
+    margin-right: 5px;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
     </style>
 </head>
 <body>
@@ -116,17 +144,17 @@ if (isset($_POST['search'])) {
     <div class="table-container">
         <table>
             <thead>
-                <tr>
-                    <th width="10%">ID NUMBER</th>
-                    <th width="15%">STUDENT NAME</th>
-                    <th width="15%">PURPOSE</th>
-                    <th width="10%">LABORATORY</th>
-                    <th width="12%">DATE</th>
-                    <th width="12%">TIME</th>
-                    <th width="10%">STATUS</th>
-                    <th width="10%">ACTION</th>
-                </tr>
-            </thead>
+    <tr>
+        <th width="10%">ID NUMBER</th>
+        <th width="15%">STUDENT NAME</th>
+        <th width="15%">PURPOSE</th>
+        <th width="10%">LABORATORY</th>
+        <th width="12%">DATE</th>
+        <th width="12%">TIME</th>
+        <th width="10%">STATUS</th>
+        <th width="10%">ACTION</th>
+        <th width="10%">PC NO.</th> </tr>
+</thead>
             <tbody>
                 <?php if ($search_results->num_rows > 0): ?>
                     <?php while($row = $search_results->fetch_assoc()): ?>
@@ -167,7 +195,20 @@ if (isset($_POST['search'])) {
                             <td>
                                 <button type="submit" class="btn-approve">Approve</button>
                             </td>
+                            <td>
+        <select name="pc_no" class="admin-pc-select" required>
+            <option value="" disabled selected>--</option>
+            <?php
+                for ($i = 1; $i <= 40; $i++) {
+                    echo "<option value='PC-$i'>$i</option>";
+                }
+            ?>
+        </select>
+    </td>
                         </form>
+                        
+    
+
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>

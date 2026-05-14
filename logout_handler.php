@@ -11,20 +11,22 @@ if (!isset($_SESSION['id_number']) && !isset($_SESSION['role'])) {
 
 $current_time = date('Y-m-d H:i:s');
 
-// --- CASE A: ADMIN LOGGING OUT A STUDENT (via sit_in.php) ---
-if (isset($_GET['id']) && $_SESSION['role'] === 'Admin') {
-    $record_id = $_GET['id'];
+if (isset($_GET['id']) && isset($_GET['task_status'])) {
+    $id = $_GET['id'];
+    $task_status = $_GET['task_status']; // 'Completed' or 'Not Completed'
+    $current_time = date('Y-m-d H:i:s');
 
-    $stmt = $conn->prepare("UPDATE sitin_records SET status = 'Completed', logout_time = ? WHERE id = ?");
-    $stmt->bind_param("si", $current_time, $record_id);
-
+    // Update the record with the status chosen by the admin
+    $stmt = $conn->prepare("UPDATE sitin_records SET status = 'Completed', task_status = ?, logout_time = ? WHERE id = ?");
+    $stmt->bind_param("ssi", $task_status, $current_time, $id);
+    
     if ($stmt->execute()) {
         header("Location: sit_in.php?msg=logged_out");
     } else {
-        echo "Error: " . $conn->error;
+        echo "Error updating record: " . $conn->error;
     }
     $stmt->close();
-} 
+}
 
 // --- CASE B: STUDENT LOGGING OUT THEMSELVES (via homepage.php) ---
 else if (isset($_GET['status']) && isset($_SESSION['id_number'])) {

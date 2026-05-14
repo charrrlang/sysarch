@@ -22,7 +22,7 @@ $result = $stmt->get_result();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sit-in History - CCS Monitoring</title>
+    <title>History</title>
     <style>
         html, body { 
             height: 100%; margin: 0; 
@@ -153,6 +153,8 @@ td:last-child {
                             <th>Lab Room</th>
                             <th>Login Time</th>
                             <th>Logout Time</th>
+                            <th>Duration</th>
+                            <th>PC No.</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -175,6 +177,26 @@ td:last-child {
                 <td><?php echo $login_fmt; ?></td>
                 <td><?php echo $logout_fmt; ?></td>
                 <td>
+    <?php 
+    if (!empty($row['logout_time'])) {
+        $start = new DateTime($row['login_time']);
+        $end = new DateTime($row['logout_time']);
+        $interval = $start->diff($end);
+
+        // Logic to show "5 mins" or "1 hr 10 mins"
+        if ($interval->h > 0) {
+            echo $interval->format('%h hr %i mins');
+        } else {
+            echo $interval->format('%i mins');
+        }
+    } else {
+        echo "<span style='color: #1a2fa3;'>Active</span>";
+    }
+    ?>
+</td>
+                <td><?php echo htmlspecialchars($row['pc_no'] ?? 'N/A'); ?></td>
+
+                <td>
                     <span class="status-badge <?php echo $status_class; ?>">
                         <?php echo $status_text; ?>
                     </span>
@@ -192,6 +214,8 @@ td:last-child {
     } else {
         echo "<tr><td colspan='5' style='text-align:center;'>No records found for ID: " . htmlspecialchars($id_number) . "</td></tr>";
     }
+
+    
     ?>
 </tbody>
                 </table>

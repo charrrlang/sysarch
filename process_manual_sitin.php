@@ -9,6 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $purpose = $_POST['purpose'];
     $lab_room = $_POST['lab_room'];
     $login_time = $_POST['date'] . ' ' . $_POST['time'];
+    $pc_no = $_POST['pc_no'];
 
     // 1. Check if the student has enough sessions left before approving
     $check_sql = "SELECT sessions_remaining FROM users WHERE Id = ?";
@@ -24,10 +25,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 2. Insert the sit-in record
-    $sql_insert = "INSERT INTO sitin_records (id_number, fullname, purpose, lab_room, login_time, status) 
-                   VALUES (?, ?, ?, ?, ?, 'Active')";
+    $sql_insert = "INSERT INTO sitin_records (id_number, fullname, purpose, lab_room, login_time, status, pc_no) 
+                   VALUES (?, ?, ?, ?, ?, 'Active', ?)";
     $stmt_insert = $conn->prepare($sql_insert);
-    $stmt_insert->bind_param("sssss", $id_number, $fullname, $purpose, $lab_room, $login_time);
+    $stmt_insert->bind_param("ssssss", $id_number, $fullname, $purpose, $lab_room, $login_time, $pc_no);
 
     if ($stmt_insert->execute()) {
         // 3. SUCCESS! Now deduct 1 session from the users table
